@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
-
+const fournisseurRoutes = require('./routes/fournisseurRoutes');
 // Chargement des variables d'environnement
 dotenv.config();
 
@@ -17,11 +17,9 @@ app.use(cors());
 app.use(express.json()); 
 
 
-
 app.use('/api/auth', authRoutes);
 
-
-
+app.use('/api/fournisseurs', fournisseurRoutes);
 
 // Route de test
 app.get('/', (req, res) => {
