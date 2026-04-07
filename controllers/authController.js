@@ -68,3 +68,24 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// afficher mes infos 
+exports.getMe = async (req, res) => {
+    try {
+        // req.user.id vient de middleware authenticate
+        const user = await User.findById(req.user.id).select('-password'); 
+        
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé" });
+        }
+
+        res.status(200).json({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            createdAt: user.createdAt
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
