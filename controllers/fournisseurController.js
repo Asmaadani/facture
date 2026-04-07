@@ -29,3 +29,36 @@ exports.getFournisseurs=async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// Consulter un fournisseur spécifique
+exports.getFournisseurById = async (req, res) => {
+    res.status(200).json(req.fournisseur); 
+};
+// Modifier un fournisseur
+exports.updateFournisseur = async (req, res) => {
+    try {
+        const updates = req.body;
+        
+        if (updates.name && updates.name.length < 2) {
+            return res.status(422).json({ message: "Le nom doit avoir au moins 2 caractères" });
+        }
+
+        const updatedFournisseur = await Fournisseur.findByIdAndUpdate(
+            req.params.id,     
+            updates,
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json(updatedFournisseur); 
+    } catch (error) {
+        res.status(422).json({ message: error.message });
+    }
+};
+// Supprimer un fournisseur
+exports.deleteFournisseur = async (req, res) => {
+    try {
+        await Fournisseur.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Fournisseur supprimé" }); // [cite: 121]
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
