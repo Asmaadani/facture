@@ -29,6 +29,7 @@ exports.getFournisseurs=async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 // Consulter un fournisseur spécifique
 exports.getFournisseurById = async (req, res) => {
     res.status(200).json(req.fournisseur); 

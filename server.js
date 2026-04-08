@@ -4,6 +4,8 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const fournisseurRoutes = require('./routes/fournisseurRoutes');
+const factureRoutes = require('./routes/factureRoutes');
+
 // Chargement des variables d'environnement
 dotenv.config();
 
@@ -20,6 +22,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 
 app.use('/api/fournisseurs', fournisseurRoutes);
+
+app.use('/api/factures', factureRoutes);
 
 // Route de test
 app.get('/', (req, res) => {
