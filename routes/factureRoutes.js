@@ -1,7 +1,7 @@
 const express = require('express');
 const factureController = require('../controllers/factureController.js');
-const { authenticate } = require('../middlewares/authMiddleware.js');
 const { isFactureOwner } = require('../midllewares/isFactureOwner.js');
+const { authenticate } = require('../midllewares/authMiddleware.js');
 
 const router = express.Router();
 
