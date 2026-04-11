@@ -1,4 +1,5 @@
 const Fournisseur= require('../models/fournisseur');
+const Facture = require('../models/facture');
 
 // créer un fournisseur
 exports.createFournisseur =async(req, res) => {
@@ -32,8 +33,24 @@ exports.getFournisseurs=async(req, res) => {
 
 // Consulter un fournisseur spécifique
 exports.getFournisseurById = async (req, res) => {
-    res.status(200).json(req.fournisseur); 
+    try {
+        // vérifié par le middleware isFournisseurOwner
+        const fournisseur = req.fournisseur;
+
+        const invoiceCount = await Facture.countDocuments({ 
+            fournisseurId: fournisseur._id,
+            userId: req.user.id 
+        });
+
+        res.status(200).json({
+            ...fournisseur._doc, // Les données du fournisseur
+            invoiceCount: invoiceCount 
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
+
 // Modifier un fournisseur
 exports.updateFournisseur = async (req, res) => {
     try {

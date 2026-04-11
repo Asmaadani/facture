@@ -1,6 +1,6 @@
 const Facture = require('../models/facture');
+const Payment = require('../models/payment'); 
 
-// créer la facture
 exports.createFacture = async (req, res)=>{
     try{
         const {fournisseurId, amount, dueDate, description} = req.body;
@@ -18,19 +18,16 @@ exports.createFacture = async (req, res)=>{
     }
 };
 
-// lister les factures
 
 exports.getFactures = async (req, res) =>{
     try{
         const {status, fournisseurId}= req.query;
         let query = {userId: req.user.id};
-        // filte optionnels
         if(status) query.status = status;
         if (fournisseurId) query.fournisseurId = fournisseurId;
 
         const factures= await Facture.find(query).populate('fournisseurId', 'name');
         
-        // pour marquer comme overdue
         const updateFactures= factures.map(inv => {
             if( inv.status !== 'paid' && new Date( inv.dueDate)< new Date()){
                 inv.status = 'overdue';
@@ -40,5 +37,57 @@ exports.getFactures = async (req, res) =>{
         res.status(200).json(updateFactures);
     }catch (error){
         res.status(500).json({message: error.message});
+    }
+};
+
+exports.getFactureById = async (req, res) => {
+    try {
+        const facture = await Facture.findById(req.params.id).populate('fournisseurId');
+        res.status(200).json(facture);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+exports.deleteFacture = async (req, res) => {
+    try {
+        const factureId = req.params.id;
+
+        const paymentCount = await Payment.countDocuments({ invoiceId: factureId });
+        
+        if (paymentCount > 0) {
+            return res.status(422).json({ 
+                message: "Impossible de supprimer une facture ayant des paiements enregistrés." 
+            });
+        }
+
+        await Facture.findByIdAndDelete(factureId);
+        res.status(200).json({ message: "Facture supprimée avec succès." });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+exports.updateFacture = async (req, res) => {
+    try {
+        const facture = req.facture;
+
+        if (facture.status === 'paid') {
+            return res.status(422).json({ 
+                message: "Une facture déjà payée ne peut pas être modifiée." 
+            });
+        }
+
+        const updatedFacture = await Facture.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json(updatedFacture);
+    } catch (error) {
+        res.status(422).json({ message: error.message });
     }
 };
