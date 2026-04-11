@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const fournisseurRoutes = require('./routes/fournisseurRoutes');
 const factureRoutes = require('./routes/factureRoutes');
+const statRoutes = require('./routes/statRoutes');
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/fournisseurs', fournisseurRoutes);
 
 app.use('/api/factures', factureRoutes);
+
+app.use('/api/stats', statRoutes);
 
 // app.get('/', (req, res) => {
 //     res.send('API Facturation Opérationnelle !');

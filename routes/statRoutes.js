@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const statController = require('../controllers/statController');
-const { authenticate } = require('../middlewares/authMiddleware');
-
+const { authenticate } = require('../midllewares/authMiddleware');
 router.use(authenticate); 
 
 router.get('/dashboard', authenticate, statController.getGlobalDashboard);

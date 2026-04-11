@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Facture = require('../models/facture');
 
 exports.getFournisseurStats = async (req, res) => {

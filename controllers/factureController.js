@@ -49,12 +49,17 @@ exports.getFactureById = async (req, res) => {
     }
 };
 
-
 exports.deleteFacture = async (req, res) => {
     try {
-        const factureId = req.params.id;
+        const facture = req.facture;
 
-        const paymentCount = await Payment.countDocuments({ invoiceId: factureId });
+        if (facture.status === 'paid') {
+            return res.status(422).json({ 
+                message: "Interdit : Impossible de supprimer une facture dont le statut est 'paid'." 
+            });
+        }
+
+        const paymentCount = await Payment.countDocuments({ factureId: facture._id });
         
         if (paymentCount > 0) {
             return res.status(422).json({ 
@@ -62,13 +67,12 @@ exports.deleteFacture = async (req, res) => {
             });
         }
 
-        await Facture.findByIdAndDelete(factureId);
+        await Facture.findByIdAndDelete(facture._id);
         res.status(200).json({ message: "Facture supprimée avec succès." });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
-
 
 exports.updateFacture = async (req, res) => {
     try {
