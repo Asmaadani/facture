@@ -4,7 +4,7 @@ const fournisseurSchema = new mongoose.Schema({
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User', 
-        required: true // Pour garantir l'isolation des données [cite: 14, 22]
+        required: true 
     },
     name: { 
         type: String, 

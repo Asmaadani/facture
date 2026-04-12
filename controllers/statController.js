@@ -6,15 +6,12 @@ exports.getFournisseurStats = async (req, res) => {
         const userId = req.user.id;
         const { id } = req.params;
 
-        //Total des factures "pourcentage"
         const allFactures = await Facture.find({ userId });
         const globalTotal = allFactures.reduce((acc, inv) => acc + inv.amount, 0);
 
-        //Total de facture d'un fournisseur spécifique
         const fournisseurFactures = await Facture.find({ userId, fournisseurId: id });
         const fournisseurTotal = fournisseurFactures.reduce((acc, inv) => acc + inv.amount, 0);
 
-        //le pourcentage
         const percentage = globalTotal > 0 ? (fournisseurTotal / globalTotal) * 100 : 0;
 
         res.status(200).json({
@@ -30,19 +27,39 @@ exports.getFournisseurStats = async (req, res) => {
 
 exports.getGlobalDashboard = async (req, res) => {
     try {
-        const userId = req.user.id;
+        
+        let matchFilter = {};
+        if (req.user.role !== 'admin') {
+            matchFilter.userId = new mongoose.Types.ObjectId(req.user.id);
+        }
 
+        //Calcul des totaux par statut (Dépenses, Retards, Total factures)
         const stats = await Facture.aggregate([
-            { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-            { $group: {
-                _id: "$status",
-                totalAmount: { $sum: "$amount" },
-                count: { $sum: 1 }
-            }}
+            { $match: matchFilter }, 
+            { 
+                $group: {
+                    _id: null,
+                    totalInvoices: { $sum: 1 }, 
+                    totalAmount: { $sum: "$amount" }, 
+                    unpaidAmount: { 
+                        $sum: { $cond: [{ $eq: ["$status", "unpaid"] }, "$amount", 0] } 
+                    },
+                    partiallyPaidAmount: { 
+                        $sum: { $cond: [{ $eq: ["$status", "partially_paid"] }, "$amount", 0] } 
+                    },
+                    paidAmount: { 
+                        $sum: { $cond: [{ $eq: ["$status", "paid"] }, "$amount", 0] } 
+                    },
+                    overdueCount: { 
+                        $sum: { $cond: [{ $eq: ["$status", "overdue"] }, 1, 0] } 
+                    }
+                }
+            }
         ]);
 
+        //Dépenses les plus élevées
         const topFournisseurs = await Facture.aggregate([
-            { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+            { $match: matchFilter }, 
             { $group: {
                 _id: "$fournisseurId",
                 totalSpent: { $sum: "$amount" }
@@ -54,12 +71,28 @@ exports.getGlobalDashboard = async (req, res) => {
                 localField: "_id",
                 foreignField: "_id",
                 as: "details"
-            }}
+            }},
+            { $unwind: "$details" }
         ]);
 
+        const dashboardData = stats.length > 0 ? stats[0] : {
+            totalInvoices: 0,
+            totalAmount: 0,
+            unpaidAmount: 0,
+            partiallyPaidAmount: 0,
+            paidAmount: 0,
+            overdueCount: 0
+        };
+
         res.status(200).json({
-            overview: stats,
-            topFournisseures: topFournisseures
+            role: req.user.role,
+            summary: {
+                totalFactures: dashboardData.totalInvoices,
+                depensesTotales: dashboardData.totalAmount,
+                resteAPayer: dashboardData.unpaidAmount + dashboardData.partiallyPaidAmount,
+                nombreRetards: dashboardData.overdueCount
+            },
+            topFournisseurs
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

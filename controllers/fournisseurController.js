@@ -1,11 +1,9 @@
 const Fournisseur= require('../models/fournisseur');
 const Facture = require('../models/facture');
 
-// créer un fournisseur
 exports.createFournisseur =async(req, res) => {
     try{
         const {name, contact, email, phone, address} = req.body;
-            // le fournisseur dépend à userId
             const fournisseur = await Fournisseur.create({
                 userId: req.user.id,
                 name,
@@ -20,7 +18,6 @@ exports.createFournisseur =async(req, res) => {
         }
 };
 
-// Lister ses fournisseurs
 exports.getFournisseurs=async(req, res) => {
     try {
         // le client ne voit que ses données
@@ -31,10 +28,8 @@ exports.getFournisseurs=async(req, res) => {
     }
 };
 
-// Consulter un fournisseur spécifique
 exports.getFournisseurById = async (req, res) => {
     try {
-        // vérifié par le middleware isFournisseurOwner
         const fournisseur = req.fournisseur;
 
         const invoiceCount = await Facture.countDocuments({ 
@@ -43,7 +38,7 @@ exports.getFournisseurById = async (req, res) => {
         });
 
         res.status(200).json({
-            ...fournisseur._doc, // Les données du fournisseur
+            ...fournisseur._doc,
             invoiceCount: invoiceCount 
         });
     } catch (error) {
@@ -51,7 +46,6 @@ exports.getFournisseurById = async (req, res) => {
     }
 };
 
-// Modifier un fournisseur
 exports.updateFournisseur = async (req, res) => {
     try {
         const updates = req.body;
@@ -71,11 +65,10 @@ exports.updateFournisseur = async (req, res) => {
         res.status(422).json({ message: error.message });
     }
 };
-// Supprimer un fournisseur
 exports.deleteFournisseur = async (req, res) => {
     try {
         await Fournisseur.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Fournisseur supprimé" }); // [cite: 121]
+        res.status(200).json({ message: "Fournisseur supprimé" }); 
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

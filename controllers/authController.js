@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-// register
+
 exports.register = async (req, res) => {
     try {
         const { name, email, password, password_confirmation } = req.body;
@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
         const token = jwt.sign(
             { id: user._id, role: user.role }, 
             process.env.JWT_SECRET, 
-            { expiresIn: process.env.JWT_EXPIRES_IN }   //7d
+            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
         );
 
         res.status(201).json({
@@ -33,7 +33,6 @@ exports.register = async (req, res) => {
     }
 };
 
-// login
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -48,7 +47,11 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role },  process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+        const token = jwt.sign(
+            { id: user._id, role: user.role }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        );
 
         res.status(200).json({ 
             message: "Connexion réussie",
@@ -59,10 +62,9 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-// afficher mes infos 
+
 exports.getMe = async (req, res) => {
     try {
-        // req.user.id vient de middleware authenticate
         const user = await User.findById(req.user.id).select('-password'); 
         
         if (!user) {

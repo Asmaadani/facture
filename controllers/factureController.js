@@ -22,7 +22,12 @@ exports.createFacture = async (req, res)=>{
 exports.getFactures = async (req, res) =>{
     try{
         const {status, fournisseurId}= req.query;
-        let query = {userId: req.user.id};
+
+        let query = {};
+        if (req.user.role !== 'admin') {
+            query.userId = req.user.id; 
+        }
+
         if(status) query.status = status;
         if (fournisseurId) query.fournisseurId = fournisseurId;
 
