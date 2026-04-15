@@ -57,6 +57,8 @@ exports.getGlobalDashboard = async (req, res) => {
             }
         ]);
 
+
+
         //Dépenses les plus élevées
         const topFournisseurs = await Facture.aggregate([
             { $match: matchFilter }, 
@@ -98,3 +100,30 @@ exports.getGlobalDashboard = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.getMonthlySummary = async (req,res) =>{
+
+    let MonthlyFilter={};
+    if (req.user.role!=="admin"){
+        MonthlyFilter.userId= new mongoose.Types.ObjectId(req.user.id);
+    };
+
+    const MonthlyInvoices = await Facture.aggregate([
+        {$match : MonthlyFilter},
+
+        {$group :{
+            _id:null,
+            totalFacture :{$sum :1},
+            totalMontantFacture :{$sum: "amount"},
+            totalFactureUnpaid :{
+                $sum :{$cond :[{$eq:["$status","unpaid"]}, "$amount" , 0]}
+            }
+        }}
+    ]);
+
+    const MonthlyData = MonthlyInvoices.length > 0 ? MonthlyInvoices[0] : {
+            totalFacture: 0,
+            totalMontantFacture: 0,
+            totalFactureUnpaid: 0,
+        };
+}

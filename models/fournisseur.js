@@ -9,7 +9,7 @@ const fournisseurSchema = new mongoose.Schema({
     name: { 
         type: String, 
         required: true, 
-        minlength: 2 // [cite: 94]
+        minlength: 2 
     },
     contact: String,
     email: { 
